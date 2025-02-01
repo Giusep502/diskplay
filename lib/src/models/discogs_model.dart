@@ -194,7 +194,7 @@ class AlbumTrack {
   final List<AlbumTrack>? subTracks;
 }
 
-class Collection extends ChangeNotifier {
+class Collection {
   Collection(this.userAgent);
 
   @visibleForTesting
@@ -262,7 +262,6 @@ class Collection extends ChangeNotifier {
     _totalItems = 0;
     _totalPages = 0;
     _log.fine('Reset collection.');
-    notifyListeners();
   }
 
   void _clearAndAddAlbums(List<CollectionAlbum> albums) {
@@ -274,7 +273,6 @@ class Collection extends ChangeNotifier {
   void _addAlbums(List<CollectionAlbum> albums) {
     _albumList.addAll(albums);
     _log.fine('Added ${albums.length} albums.');
-    notifyListeners();
   }
 
   Future<void> updateUsername(String? newUsername) async {
