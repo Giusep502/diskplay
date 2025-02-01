@@ -1,1 +1,8 @@
 include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Add or remove lint rules as needed
+    - avoid_print
+    - prefer_const_constructors
+    - prefer_const_literals_to_create_immutables
