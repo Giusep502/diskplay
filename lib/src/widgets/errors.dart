@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
-final GlobalKey<ScaffoldMessengerState> scrobblerScaffoldMessengerKey =
+final GlobalKey<ScaffoldMessengerState> diskplayScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
 void displayAndLogError(Logger logger, Object e, StackTrace stackTrace,
@@ -29,7 +29,7 @@ void displayAndLogError(Logger logger, Object e, StackTrace stackTrace,
 }
 
 void displayError(String errorMessage) {
-  final scaffoldMsg = scrobblerScaffoldMessengerKey.currentState;
+  final scaffoldMsg = diskplayScaffoldMessengerKey.currentState;
   scaffoldMsg?.removeCurrentSnackBar();
   scaffoldMsg?.showSnackBar(SnackBar(
     content: Text(errorMessage),
@@ -38,7 +38,7 @@ void displayError(String errorMessage) {
 }
 
 void displaySuccess(String message) {
-  scrobblerScaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
+  diskplayScaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
     content: Text(message),
     backgroundColor: Colors.green,
   ));

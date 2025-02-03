@@ -3,8 +3,16 @@ import 'src/utils/theme.dart';
 import 'src/screens/home_screen.dart';
 import 'src/screens/library_screen.dart';
 import 'src/screens/settings_screen.dart';
+import 'package:logging/logging.dart';
+
+import 'src/widgets/errors.dart';
 
 void main() {
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+  });
+
   runApp(const MainApp());
 }
 
@@ -16,6 +24,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       theme: appTheme,
       home: const MainScreen(),
+      scaffoldMessengerKey: diskplayScaffoldMessengerKey,
     );
   }
 }

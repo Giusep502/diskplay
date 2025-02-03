@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import '../models/discogs_model.dart';
 import '../utils/database_helper.dart';
+import '../widgets/errors.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
@@ -15,6 +17,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   bool _isLoading = false;
   final TextEditingController _controller = TextEditingController();
   final _discogsCollection = Collection('Diskplay/0.1');
+  static final Logger _log = Logger('LibraryScreen');
 
   @override
   void initState() {
@@ -22,10 +25,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   void _onPressed() async {
-    _discogsCollection.updateUsername(_controller.text);
-    _isLoading = true;
-    await _discogsCollection.loadAllAlbums();
-    _isLoading = false;
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      await _discogsCollection.updateUsername(_controller.text);
+      await _discogsCollection.loadAllAlbums();
+    } on Exception catch (e, stackTrace) {
+      displayAndLogError(_log, e, stackTrace);
+    }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _showAlert(String message) {

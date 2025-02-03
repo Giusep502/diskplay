@@ -10,30 +10,19 @@ import 'package:logging/logging.dart';
 import '../secrets.dart';
 import '../widgets/errors.dart';
 
-abstract class CollectionAlbum {
-  String get title;
-  String get artist;
-  String get thumbUrl;
-  int get id;
-}
-
-abstract class AlbumDetails {
-  String get title;
-  String get artist;
-  String get thumbUrl;
-  String get year;
-  String get genre;
-  String get style;
-  String get country;
-  String get label;
-  String get format;
-  String get notes;
-  List<String> get tracklist;
-}
-
 abstract class AlbumResponse {
   List<dynamic> get releases;
   Map<String, dynamic> get pageInfo;
+}
+
+class _AlbumResponseImpl implements AlbumResponse {
+  _AlbumResponseImpl(this.releases, this.pageInfo);
+
+  @override
+  final List<dynamic> releases;
+
+  @override
+  final Map<String, dynamic> pageInfo;
 }
 
 class DiscogsService {
@@ -114,8 +103,7 @@ To use this app, please go to discogs.com and change your collection to public.'
 
     final pageInfo = page['pagination'] as Map<String, dynamic>;
     final releases = page['releases'] as List<dynamic>;
-
-    return {releases, pageInfo} as AlbumResponse;
+    return _AlbumResponseImpl(releases, pageInfo);
   }
 
   Future<Map<String, dynamic>> loadAlbumDetails(int releaseId) async {
