@@ -39,13 +39,41 @@ class _LibraryScreenState extends State<LibraryScreen> {
     });
   }
 
-  void _showAlert(String message) {
+  void _showAlert(String message, String? imgUrl) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('You should listen to:'),
-          content: Text(message),
+          content: imgUrl != null && imgUrl.isNotEmpty
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                        width: 200,
+                        height: 200,
+                        child: Image.network(imgUrl, fit: BoxFit.cover,
+                            loadingBuilder: (BuildContext context, Widget child,
+                                ImageChunkEvent? loadingProgress) {
+                          if (loadingProgress == null) {
+                            return child;
+                          } else {
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        (loadingProgress.expectedTotalBytes ??
+                                            1)
+                                    : null,
+                              ),
+                            );
+                          }
+                        })),
+                    Text(message)
+                  ],
+                )
+              : Text(message),
           actions: <Widget>[
             TextButton(
               child: const Text('OK'),
@@ -68,11 +96,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   void _onPressedRandom() async {
     if (_discogsCollection.albums.isEmpty) {
-      _showAlert('Please synchronize your collection first');
+      _showAlert('Please synchronize your collection first', null);
     }
+
     final randomized = [..._discogsCollection.albums];
     randomized.shuffle();
-    _showAlert('${randomized[0].artist} - ${randomized[0].title}');
+    _showAlert('${randomized[0].artist} - ${randomized[0].title}',
+        randomized[0].thumbUrl);
   }
 
   @override
@@ -121,6 +151,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   itemBuilder: (context, index) {
                     final album = _discogsCollection.albums[index];
                     return ListTile(
+                      leading:
+                          album.thumbUrl != null && album.thumbUrl!.isNotEmpty
+                              ? Image.network(album.thumbUrl!)
+                              : null,
                       title: Text(album.title),
                       subtitle: Text('${album.artist} - ${album.year}'),
                     );
