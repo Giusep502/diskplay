@@ -18,6 +18,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   final TextEditingController _controller = TextEditingController();
   final _discogsCollection = Collection('Diskplay/0.1');
   static final Logger _log = Logger('LibraryScreen');
+  final _placeholder = Image.asset('assets/images/vinyl_placeholder.jpg');
 
   @override
   void initState() {
@@ -39,6 +40,28 @@ class _LibraryScreenState extends State<LibraryScreen> {
     });
   }
 
+  Image getImage(String? thumbUrl, int size) {
+    return thumbUrl != null && thumbUrl.isNotEmpty
+        ? Image.network(thumbUrl,
+            loadingBuilder: (BuildContext context, Widget child,
+                ImageChunkEvent? loadingProgress) {
+              if (loadingProgress == null) {
+                return child;
+              } else {
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            (loadingProgress.expectedTotalBytes ?? 1)
+                        : null,
+                  ),
+                );
+              }
+            },
+            errorBuilder: (context, error, stackTrace) => _placeholder)
+        : _placeholder;
+  }
+
   void _showAlert(String message, String? imgUrl) {
     showDialog(
       context: context,
@@ -49,27 +72,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ? Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                        width: 200,
-                        height: 200,
-                        child: Image.network(imgUrl, fit: BoxFit.cover,
-                            loadingBuilder: (BuildContext context, Widget child,
-                                ImageChunkEvent? loadingProgress) {
-                          if (loadingProgress == null) {
-                            return child;
-                          } else {
-                            return Center(
-                              child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes !=
-                                        null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                        (loadingProgress.expectedTotalBytes ??
-                                            1)
-                                    : null,
-                              ),
-                            );
-                          }
-                        })),
+                    SizedBox(
+                        width: 200, height: 200, child: getImage(imgUrl, 200)),
                     Text(message)
                   ],
                 )
@@ -151,10 +155,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   itemBuilder: (context, index) {
                     final album = _discogsCollection.albums[index];
                     return ListTile(
-                      leading:
-                          album.thumbUrl != null && album.thumbUrl!.isNotEmpty
-                              ? Image.network(album.thumbUrl!)
-                              : null,
+                      leading: SizedBox(
+                          width: 60, child: getImage(album.thumbUrl, 60)),
                       title: Text(album.title),
                       subtitle: Text('${album.artist} - ${album.year}'),
                     );
