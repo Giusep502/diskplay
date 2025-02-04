@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import '../models/discogs_model.dart';
-import '../utils/database_helper.dart';
-import '../widgets/errors.dart';
+import '../widgets/album_list.dart';
+import '../utils/errors.dart';
+import '../widgets/suggestion_alert.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
 
   @override
-  _LibraryScreenState createState() => _LibraryScreenState();
+  State<LibraryScreen> createState() => _LibraryScreenState();
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
-  List<Map<String, dynamic>> _library = [];
   bool _isLoading = false;
   final TextEditingController _controller = TextEditingController();
   final _discogsCollection = Collection('Diskplay/0.1');
   static final Logger _log = Logger('LibraryScreen');
-  final _placeholder = Image.asset('assets/images/vinyl_placeholder.jpg');
 
   @override
   void initState() {
@@ -40,62 +38,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
     });
   }
 
-  Image getImage(String? thumbUrl, int size) {
-    return thumbUrl != null && thumbUrl.isNotEmpty
-        ? Image.network(thumbUrl,
-            loadingBuilder: (BuildContext context, Widget child,
-                ImageChunkEvent? loadingProgress) {
-              if (loadingProgress == null) {
-                return child;
-              } else {
-                return Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            (loadingProgress.expectedTotalBytes ?? 1)
-                        : null,
-                  ),
-                );
-              }
-            },
-            errorBuilder: (context, error, stackTrace) => _placeholder)
-        : _placeholder;
-  }
-
   void _showAlert(String message, String? imgUrl) {
     showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('You should listen to:'),
-          content: imgUrl != null && imgUrl.isNotEmpty
-              ? Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                        width: 200, height: 200, child: getImage(imgUrl, 200)),
-                    Text(message)
-                  ],
-                )
-              : Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('NO, another one!'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _onPressedRandom();
-              },
-            ),
-          ],
-        );
-      },
-    );
+        context: context,
+        builder: (BuildContext context) {
+          return SuggestionAlert(
+            message: message,
+            onPressedRandom: _onPressedRandom,
+            imgUrl: imgUrl,
+          );
+        });
   }
 
   void _onPressedRandom() async {
@@ -150,18 +102,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         Expanded(
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                  itemCount: _discogsCollection.albums.length,
-                  itemBuilder: (context, index) {
-                    final album = _discogsCollection.albums[index];
-                    return ListTile(
-                      leading: SizedBox(
-                          width: 60, child: getImage(album.thumbUrl, 60)),
-                      title: Text(album.title),
-                      subtitle: Text('${album.artist} - ${album.year}'),
-                    );
-                  },
-                ),
+              : AlbumList(albums: _discogsCollection.albums),
         ),
       ],
     );

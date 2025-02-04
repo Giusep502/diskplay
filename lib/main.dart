@@ -5,7 +5,7 @@ import 'src/screens/library_screen.dart';
 import 'src/screens/settings_screen.dart';
 import 'package:logging/logging.dart';
 
-import 'src/widgets/errors.dart';
+import 'src/utils/errors.dart';
 
 void main() {
   Logger.root.level = Level.ALL;
@@ -33,7 +33,7 @@ class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  _MainScreenState createState() => _MainScreenState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {

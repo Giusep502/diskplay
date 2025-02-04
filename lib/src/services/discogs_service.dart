@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
 import '../secrets.dart';
-import '../widgets/errors.dart';
+import '../utils/errors.dart';
 
 abstract class AlbumResponse {
   List<dynamic> get releases;

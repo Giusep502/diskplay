@@ -5,15 +5,12 @@ import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
 
 import '../services/discogs_service.dart';
-import '../widgets/errors.dart';
+import '../utils/errors.dart';
 
 abstract class Album {
   int get releaseId;
-
   String get artist;
-
   String get title;
-
   String? get thumbUrl;
 }
 
@@ -64,20 +61,6 @@ class CollectionAlbum implements Album {
   final int? rating;
   final String? dateAdded;
   final String searchString;
-
-  CollectionAlbum copyWith({required int id}) {
-    return CollectionAlbum(
-      id: id,
-      releaseId: releaseId,
-      artist: artist,
-      title: title,
-      formats: formats,
-      year: year,
-      thumbUrl: thumbUrl,
-      rating: rating,
-      dateAdded: dateAdded,
-    );
-  }
 }
 
 class AlbumFormat {
@@ -189,7 +172,7 @@ class AlbumTrack {
   final List<AlbumTrack>? subTracks;
 }
 
-class Collection {
+class Collection extends ChangeNotifier {
   Collection(this.userAgent) : _discogsService = DiscogsService(userAgent);
 
   final DiscogsService _discogsService;
