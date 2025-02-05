@@ -1,15 +1,13 @@
-import '../models/discogs_model.dart';
+import '../models/collection_album.dart';
 import 'package:flutter/material.dart';
 
 import 'album_image.dart';
 
 class AlbumList extends StatelessWidget {
   final List<CollectionAlbum> albums;
+  final String user;
 
-  const AlbumList({
-    super.key,
-    required this.albums,
-  });
+  const AlbumList({super.key, required this.albums, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +18,7 @@ class AlbumList extends StatelessWidget {
         return ListTile(
           leading: SizedBox(
             width: 60,
-            child: AlbumImage(thumbUrl: album.thumbUrl, size: 60),
+            child: AlbumImage(thumbUrl: album.thumbUrl ?? '', size: 60),
           ),
           title: Text(album.title),
           subtitle: Text('${album.artist} - ${album.year}'),

@@ -1,5 +1,6 @@
 // Inspired by Scrobbler App, Copyright (c) 2020 Filipe Tavares
 
+import 'package:diskplay_app/src/services/collection_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
@@ -26,7 +27,9 @@ class CollectionAlbum implements Album {
       required this.year,
       required this.thumbUrl,
       required this.rating,
-      required this.dateAdded})
+      required this.dateAdded,
+      required this.genres,
+      required this.styles})
       : searchString = _normalizeSearchString('$artist $title');
 
   factory CollectionAlbum.fromJson(Map<String, dynamic> json) {
@@ -44,6 +47,14 @@ class CollectionAlbum implements Album {
       thumbUrl: info['thumb'] as String?,
       rating: json['rating'] as int?,
       dateAdded: json['date_added'] as String?,
+      genres: (info['genres'] as List<dynamic>?)
+              ?.map((genre) => genre as String)
+              .toList() ??
+          [],
+      styles: (info['styles'] as List<dynamic>?)
+              ?.map((genre) => genre as String)
+              .toList() ??
+          [],
     );
   }
 
@@ -61,6 +72,8 @@ class CollectionAlbum implements Album {
   final int? rating;
   final String? dateAdded;
   final String searchString;
+  final List<String> genres;
+  final List<String> styles;
 }
 
 class AlbumFormat {
@@ -176,6 +189,7 @@ class Collection extends ChangeNotifier {
   Collection(this.userAgent) : _discogsService = DiscogsService(userAgent);
 
   final DiscogsService _discogsService;
+  final CollectionService _collectionService = CollectionService();
   final String userAgent;
 
   String? _username;
@@ -233,6 +247,7 @@ class Collection extends ChangeNotifier {
 
   void _addAlbums(List<CollectionAlbum> albums) {
     _albumList.addAll(albums);
+    _collectionService.saveUserCollection(albums as List<dynamic>, _username!);
     _log.fine('Added ${albums.length} albums.');
   }
 
@@ -343,7 +358,7 @@ class Collection extends ChangeNotifier {
 
       pages.forEach(_addAlbums);
 
-      _nextPage = _totalPages + 1; // setting page index to the end
+      _nextPage = 0; // setting page index to the start
 
       _progress.finished();
     } catch (e) {

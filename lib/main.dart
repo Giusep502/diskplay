@@ -1,4 +1,6 @@
+import 'package:diskplay_app/src/models/collection_album.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'src/utils/theme.dart';
 import 'src/screens/home_screen.dart';
 import 'src/screens/library_screen.dart';
@@ -7,11 +9,15 @@ import 'package:logging/logging.dart';
 
 import 'src/utils/errors.dart';
 
-void main() {
+void main() async {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
+
+  await Hive.initFlutter();
+  Hive.registerAdapter(CollectionAlbumAdapter());
+  await Hive.openBox('collectionBox');
 
   runApp(const MainApp());
 }

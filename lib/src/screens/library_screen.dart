@@ -1,3 +1,4 @@
+import 'package:diskplay_app/src/services/collection_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import '../models/discogs_model.dart';
@@ -14,8 +15,10 @@ class LibraryScreen extends StatefulWidget {
 
 class _LibraryScreenState extends State<LibraryScreen> {
   bool _isLoading = false;
+
   final TextEditingController _controller = TextEditingController();
   final _discogsCollection = Collection('Diskplay/0.1');
+  final _collectionService = CollectionService();
   static final Logger _log = Logger('LibraryScreen');
 
   @override
@@ -63,6 +66,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final listKeys = _collectionService.getUsers() ?? [];
+    final collection = _collectionService.getAllCollections() ?? [];
     return Column(
       children: [
         Padding(
@@ -91,7 +96,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('${_discogsCollection.albums.length.toString()} albums'),
+                Text(
+                    '${collection.expand((element) => element).length} albums'),
                 const SizedBox(width: 8.0), // Add space between Text and Button
                 ElevatedButton(
                   onPressed: _onPressedRandom,
@@ -102,7 +108,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
         Expanded(
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : AlbumList(albums: _discogsCollection.albums),
+              : listKeys.isNotEmpty
+                  ? AlbumList(
+                      user: listKeys[0],
+                      albums:
+                          _collectionService.getUserCollection(listKeys[0])!)
+                  : const Center(
+                      child: Text('No data loaded'),
+                    ),
         ),
       ],
     );
