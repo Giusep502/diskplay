@@ -28,6 +28,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   void _onPressed() async {
+    /** TODO: FIX loading workaround to notify changes */
     setState(() {
       _isLoading = true;
     });

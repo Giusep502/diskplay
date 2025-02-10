@@ -164,7 +164,7 @@ class AlbumTrack {
   final List<AlbumTrack>? subTracks;
 }
 
-class Collection extends ChangeNotifier {
+class Collection {
   Collection(this.userAgent) : _discogsService = DiscogsService(userAgent);
 
   final DiscogsService _discogsService;
