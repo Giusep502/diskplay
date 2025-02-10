@@ -7,29 +7,24 @@ import 'package:logging/logging.dart';
 
 import '../services/discogs_service.dart';
 import '../utils/errors.dart';
-
-abstract class Album {
-  int get releaseId;
-  String get artist;
-  String get title;
-  String? get thumbUrl;
-}
+import 'album_format.dart';
+import 'collection_album.dart';
 
 String _normalizeSearchString(String s) => removeDiacritics(s).toLowerCase();
 
-class CollectionAlbum implements Album {
+class CollectionAlbum extends DbCollectionAlbum {
   CollectionAlbum(
       {required this.id,
-      required this.releaseId,
-      required this.artist,
-      required this.title,
-      required this.formats,
-      required this.year,
-      required this.thumbUrl,
-      required this.rating,
-      required this.dateAdded,
-      required this.genres,
-      required this.styles})
+      required super.releaseId,
+      required super.artist,
+      required super.title,
+      required super.formats,
+      required super.year,
+      required super.thumbUrl,
+      required super.rating,
+      required super.dateAdded,
+      required super.genres,
+      required super.styles})
       : searchString = _normalizeSearchString('$artist $title');
 
   factory CollectionAlbum.fromJson(Map<String, dynamic> json) {
@@ -59,33 +54,22 @@ class CollectionAlbum implements Album {
   }
 
   final int id;
-  @override
-  final int releaseId;
-  @override
-  final String artist;
-  @override
-  final String title;
-  @override
-  final String? thumbUrl;
-  final List<AlbumFormat> formats;
-  final int year;
-  final int? rating;
-  final String? dateAdded;
   final String searchString;
-  final List<String> genres;
-  final List<String> styles;
 }
 
-class AlbumFormat {
+class AlbumFormat extends DbAlbumFormat {
   AlbumFormat(
-      {required this.name,
-      this.extraText,
-      this.descriptions,
-      required this.quantity});
+      {required super.formatName,
+      super.extraText,
+      super.descriptions,
+      required super.quantity})
+      : name = formatName;
+
+  final String name;
 
   factory AlbumFormat.fromJson(Map<String, dynamic> json) {
     return AlbumFormat(
-      name: json['name'],
+      formatName: json['name'],
       extraText: json['text'],
       descriptions: (json['descriptions'] as List<dynamic>?)
               ?.map((description) => description as String)
@@ -94,11 +78,6 @@ class AlbumFormat {
       quantity: int.tryParse(json['qty']) ?? 1,
     );
   }
-
-  final String name;
-  final String? extraText;
-  final List<String>? descriptions;
-  final int quantity;
 
   @override
   String toString() {
@@ -247,7 +226,7 @@ class Collection extends ChangeNotifier {
 
   void _addAlbums(List<CollectionAlbum> albums) {
     _albumList.addAll(albums);
-    _collectionService.saveUserCollection(albums as List<dynamic>, _username!);
+    _collectionService.saveUserCollection(albums, _username!);
     _log.fine('Added ${albums.length} albums.');
   }
 

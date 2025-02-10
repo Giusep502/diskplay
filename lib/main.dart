@@ -1,6 +1,7 @@
 import 'package:diskplay_app/src/models/collection_album.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'src/models/album_format.dart';
 import 'src/utils/theme.dart';
 import 'src/screens/home_screen.dart';
 import 'src/screens/library_screen.dart';
@@ -16,7 +17,8 @@ void main() async {
   });
 
   await Hive.initFlutter();
-  Hive.registerAdapter(CollectionAlbumAdapter());
+  Hive.registerAdapter(DbCollectionAlbumAdapter());
+  Hive.registerAdapter(DbAlbumFormatAdapter());
   await Hive.openBox('collectionBox');
 
   runApp(const MainApp());

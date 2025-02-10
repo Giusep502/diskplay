@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import 'album_image.dart';
 
 class AlbumList extends StatelessWidget {
-  final List<CollectionAlbum> albums;
-  final String user;
+  final List<DbCollectionAlbum> albums;
 
-  const AlbumList({super.key, required this.albums, required this.user});
+  const AlbumList({super.key, required this.albums});
 
   @override
   Widget build(BuildContext context) {

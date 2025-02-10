@@ -1,6 +1,7 @@
 import 'package:diskplay_app/src/services/collection_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import '../models/collection_album.dart';
 import '../models/discogs_model.dart';
 import '../widgets/album_list.dart';
 import '../utils/errors.dart';
@@ -54,20 +55,22 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   void _onPressedRandom() async {
-    if (_discogsCollection.albums.isEmpty) {
+    final flatCollection = _collectionService
+        .getAllCollections()
+        .expand((element) => element)
+        .toList();
+    if (flatCollection.isEmpty) {
       _showAlert('Please synchronize your collection first', null);
     }
-
-    final randomized = [..._discogsCollection.albums];
-    randomized.shuffle();
-    _showAlert('${randomized[0].artist} - ${randomized[0].title}',
-        randomized[0].thumbUrl);
+    flatCollection.shuffle();
+    _showAlert('${flatCollection[0].artist} - ${flatCollection[0].title}',
+        flatCollection[0].thumbUrl);
   }
 
   @override
   Widget build(BuildContext context) {
-    final listKeys = _collectionService.getUsers() ?? [];
-    final collection = _collectionService.getAllCollections() ?? [];
+    final collection = _collectionService.getAllCollections();
+    final flatCollection = collection.expand((element) => element);
     return Column(
       children: [
         Padding(
@@ -96,8 +99,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                    '${collection.expand((element) => element).length} albums'),
+                Text('${flatCollection.length} albums'),
                 const SizedBox(width: 8.0), // Add space between Text and Button
                 ElevatedButton(
                   onPressed: _onPressedRandom,
@@ -108,11 +110,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
         Expanded(
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : listKeys.isNotEmpty
+              : collection.isNotEmpty
                   ? AlbumList(
-                      user: listKeys[0],
-                      albums:
-                          _collectionService.getUserCollection(listKeys[0])!)
+                      albums: flatCollection.cast<DbCollectionAlbum>().toList())
                   : const Center(
                       child: Text('No data loaded'),
                     ),
