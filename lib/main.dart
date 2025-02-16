@@ -1,3 +1,4 @@
+import 'package:diskplay_app/src/models/album_moods.dart';
 import 'package:diskplay_app/src/models/collection_album.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -19,7 +20,9 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(DbCollectionAlbumAdapter());
   Hive.registerAdapter(DbAlbumFormatAdapter());
+  Hive.registerAdapter(DbAlbumMoodsAdapter());
   await Hive.openBox('collectionBox');
+  await Hive.openBox('moodsBox');
 
   runApp(const MainApp());
 }
