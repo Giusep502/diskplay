@@ -1,3 +1,4 @@
+import 'package:diskplay_app/src/models/collection_album.dart';
 import 'package:flutter/material.dart';
 
 import '../services/collection_service.dart';
@@ -15,29 +16,33 @@ class _HomeScreenState extends State<HomeScreen> {
   final _collectionService = CollectionService();
   final _moodsService = MoodsService();
 
-  void _showAlert(String message, String? imgUrl) {
+  void _showMessage(String message) {
     showDialog(
         context: context,
         builder: (BuildContext context) {
           return SuggestionAlert(
             message: message,
-            onPressedRandom: _onPressedRandom,
-            imgUrl: imgUrl,
           );
         });
   }
 
-  void _showMoodAlert(String message, String? imgUrl, String mood) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return SuggestionAlert(
-            title: mood,
-            message: message,
-            onPressedRandom: () => _getAlbumOfMood(mood),
-            imgUrl: imgUrl,
-          );
-        });
+  void _showAlert(List<DbCollectionAlbum> albums) {
+    final album = albums.isNotEmpty ? albums[0] : null;
+    if (album != null) {
+      final message = '${album.artist} - ${album.title}';
+      final imgUrl = album.thumbUrl;
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return SuggestionAlert(
+              message: message,
+              onPressedRandom: () => _showAlert(albums.sublist(1)),
+              imgUrl: imgUrl,
+            );
+          });
+    } else {
+      _showMessage('There are no more albums');
+    }
   }
 
   void _onPressedRandom() async {
@@ -46,23 +51,18 @@ class _HomeScreenState extends State<HomeScreen> {
         .expand((element) => element)
         .toList();
     if (flatCollection.isEmpty) {
-      _showAlert('Please synchronize your collection first', null);
+      _showMessage('Please synchronize your collection first');
     }
     flatCollection.shuffle();
-    _showAlert('${flatCollection[0].artist} - ${flatCollection[0].title}',
-        flatCollection[0].thumbUrl);
+    _showAlert(flatCollection.cast());
   }
 
   void _getAlbumOfMood(String mood) {
     final albums = _moodsService.getAlbumsByMood(mood);
     albums.shuffle();
-    final album = albums.isNotEmpty ? albums[0] : null;
-    if (album != null) {
-      final albumInfo =
-          _collectionService.getAbumByTitleArtist(album.title, album.artist);
-      _showMoodAlert(
-          '${album.artist} - ${album.title}', albumInfo.thumbUrl, mood);
-    }
+    final moodAlbums = albums.map((album) =>
+        _collectionService.getAbumByTitleArtist(album.title, album.artist));
+    _showAlert(moodAlbums.toList());
   }
 
   @override
