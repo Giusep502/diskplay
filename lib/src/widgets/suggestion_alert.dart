@@ -3,20 +3,24 @@ import 'album_image.dart';
 
 class SuggestionAlert extends StatelessWidget {
   final String? imgUrl;
+  final String? title;
   final String message;
-  final void Function() onPressedRandom;
+  final void Function()? onPressedRandom;
 
   const SuggestionAlert({
     super.key,
     required this.message,
-    required this.onPressedRandom,
+    this.onPressedRandom,
+    this.title,
     this.imgUrl,
   });
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('You should listen to:'),
+      title: Text(title != null && title!.isNotEmpty
+          ? title!
+          : 'You should listen to:'),
       content: imgUrl != null && imgUrl!.isNotEmpty
           ? Column(
               mainAxisSize: MainAxisSize.min,
@@ -36,13 +40,14 @@ class SuggestionAlert extends StatelessWidget {
             Navigator.of(context).pop();
           },
         ),
-        TextButton(
-          child: const Text('NO, another one!'),
-          onPressed: () {
-            Navigator.of(context).pop();
-            onPressedRandom();
-          },
-        ),
+        if (onPressedRandom != null)
+          TextButton(
+            child: const Text('NO, another one!'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              onPressedRandom!();
+            },
+          )
       ],
     );
   }

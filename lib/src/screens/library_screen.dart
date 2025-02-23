@@ -19,6 +19,8 @@ class LibraryScreen extends StatefulWidget {
 
 class _LibraryScreenState extends State<LibraryScreen> {
   bool _isLoading = false;
+  String _selectedArtist = '';
+  String _selectedUser = '';
 
   final TextEditingController _controller = TextEditingController();
   final _discogsCollection = Collection('Diskplay/0.1');
@@ -26,11 +28,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
   final _moodsService = MoodsService();
   final _openAiService = OpenAIService();
   static final Logger _log = Logger('LibraryScreen');
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   void _onPressed() async {
     /** TODO: FIX loading workaround to notify changes */
@@ -48,36 +45,23 @@ class _LibraryScreenState extends State<LibraryScreen> {
     });
   }
 
-  void _showAlert(String message, String? imgUrl) {
+  void _showAlert(String title, String message, String? imgUrl) {
     showDialog(
         context: context,
         builder: (BuildContext context) {
           return SuggestionAlert(
+            title: title,
             message: message,
-            onPressedRandom: _onPressedRandom,
             imgUrl: imgUrl,
           );
         });
   }
 
-  void _onPressedRandom() async {
-    final flatCollection = _collectionService
-        .getAllCollections()
-        .expand((element) => element)
-        .toList();
-    if (flatCollection.isEmpty) {
-      _showAlert('Please synchronize your collection first', null);
-    }
-    flatCollection.shuffle();
-    _showAlert('${flatCollection[0].artist} - ${flatCollection[0].title}',
-        flatCollection[0].thumbUrl);
-  }
-
   void _loadAlbumMoods(DbCollectionAlbum album) async {
     final loadedMoods = _moodsService.getAlbumMoods(album.releaseId);
     if (loadedMoods != null) {
-      _showAlert(
-          '${album.title} - ${loadedMoods.moods.toString()}', album.thumbUrl);
+      _showAlert(album.title,
+          '${album.artist} - ${loadedMoods.moods.toString()}', album.thumbUrl);
       return;
     }
     final moods = await _openAiService.getMoodsFromAlbum(
@@ -88,13 +72,22 @@ class _LibraryScreenState extends State<LibraryScreen> {
         title: album.title,
         year: album.year);
     _moodsService.saveAlbumMoods(albumMoods, album.releaseId);
-    _showAlert('${album.title} - ${moods.toString()}', album.thumbUrl);
+    _showAlert(
+        album.title, '${album.artist} - ${moods.toString()}', album.thumbUrl);
   }
 
   @override
   Widget build(BuildContext context) {
     final collection = _collectionService.getAllCollections();
-    final flatCollection = collection.expand((element) => element);
+    final users = _collectionService.getUsers();
+    final flatCollection = _selectedUser.isEmpty
+        ? collection.expand((element) => element)
+        : _collectionService.getUserCollection(_selectedUser)!;
+    final filteredCollection = flatCollection.where((album) {
+      return _selectedArtist.isEmpty || album.artist == _selectedArtist;
+    }).toList();
+    final artists = flatCollection.map((album) => album.artist).toSet();
+
     return Column(
       children: [
         Padding(
@@ -109,11 +102,49 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ),
                 ),
               ),
-              const SizedBox(
-                  width: 8.0), // Add space between TextField and Button
+              const SizedBox(width: 8.0),
               ElevatedButton(
                 onPressed: _onPressed,
                 child: const Text("Synchronize"),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            spacing: 8.0,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              DropdownButton<String>(
+                hint: const Text('Select Artist'),
+                value: _selectedArtist.isEmpty ? null : _selectedArtist,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedArtist = value ?? '';
+                  });
+                },
+                items: artists
+                    .map((artist) => DropdownMenuItem(
+                          value: artist.toString(),
+                          child: Text(artist),
+                        ))
+                    .toList(),
+              ),
+              DropdownButton<String>(
+                hint: const Text('Select User'),
+                value: _selectedUser.isEmpty ? null : _selectedUser,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedUser = value ?? '';
+                  });
+                },
+                items: users
+                    .map((user) => DropdownMenuItem(
+                          value: user.toString(),
+                          child: Text(user),
+                        ))
+                    .toList(),
               ),
             ],
           ),
@@ -123,24 +154,30 @@ class _LibraryScreenState extends State<LibraryScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('${flatCollection.length} albums'),
+                Text('${filteredCollection.length} albums'),
                 const SizedBox(width: 8.0), // Add space between Text and Button
-                ElevatedButton(
-                  onPressed: _onPressedRandom,
-                  child: const Text("What should I listen to?"),
+                ActionChip(
+                  label: const Text('Clear Filters'),
+                  onPressed: () {
+                    setState(() {
+                      _selectedArtist = '';
+                      _selectedUser = '';
+                    });
+                  },
                 ),
               ],
             )),
         Expanded(
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : collection.isNotEmpty
+              : filteredCollection.isNotEmpty
                   ? AlbumList(
-                      albums: flatCollection.cast<DbCollectionAlbum>().toList(),
+                      albums:
+                          filteredCollection.cast<DbCollectionAlbum>().toList(),
                       onLongPress: _loadAlbumMoods,
                     )
                   : const Center(
-                      child: Text('No data loaded'),
+                      child: Text('No data'),
                     ),
         ),
       ],

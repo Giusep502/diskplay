@@ -29,6 +29,13 @@ class MoodsService {
         .toList();
   }
 
+  List<DbAlbumMoods> getAlbumsByMood(String mood) {
+    return _box.values
+        .where((element) => (element as DbAlbumMoods).moods.contains(mood))
+        .toList()
+        .cast();
+  }
+
   Future<void> deleteAlbumMoods(String username) async {
     await _box.delete(username);
   }

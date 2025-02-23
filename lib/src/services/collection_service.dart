@@ -29,6 +29,15 @@ class CollectionService {
     return _box.values.toList();
   }
 
+  DbCollectionAlbum getAbumByTitleArtist(String title, String artist) {
+    return _box.values
+        .expand((element) => element)
+        .where((element) =>
+            (element as DbCollectionAlbum).title == title &&
+            element.artist == artist)
+        .first;
+  }
+
   Future<void> deleteUserCollection(String username) async {
     await _box.delete(username);
   }
